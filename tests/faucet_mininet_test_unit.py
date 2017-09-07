@@ -325,19 +325,22 @@ class FaucetUntaggedGaugeHUPTest(FaucetUntaggedTest):
 
             time.sleep(1)
         return False
-    
+
     def check_text_files_created(self):
         self.flap_all_switch_ports()
-        stat_files_created = self._wait_for_port_stat_file([self.monitor_stats_file,self.monitor_state_file,self.monitor_flow_table_file])
+        stat_files_created = self._wait_for_port_stat_file(
+            [self.monitor_stats_file,
+             self.monitor_state_file,
+             self.monitor_flow_table_file])
         self.assertTrue(stat_files_created)
 
     def test_untagged(self):
         self.check_text_files_created()
-        
+
         new_stats_file = os.path.join(self.tmpdir, 'ports2.txt')
         new_state_file = os.path.join(self.tmpdir, 'state2.txt')
         new_flow_file = os.path.join(self.tmpdir, 'flow.txt')
-        
+
         gauge_config = self.get_gauge_config(
             self.faucet_config_path,
             new_stats_file,
@@ -349,10 +352,13 @@ class FaucetUntaggedGaugeHUPTest(FaucetUntaggedTest):
         self.hup_gauge()
 
         self.flap_all_switch_ports()
-        new_stat_files_created = self._wait_for_port_stat_file([new_stats_file, new_state_file, new_flow_file])
+        new_stat_files_created = self._wait_for_port_stat_file(
+            [new_stats_file,
+             new_state_file,
+             new_flow_file])
         self.assertTrue(new_stat_files_created)
         self.verify_no_exception(self.env['gauge']['GAUGE_EXCEPTION_LOG'])
-        
+
 
 class FaucetUntaggedPrometheusGaugeHUPTest(FaucetUntaggedGaugeHUPTest):
     config = 'text'
@@ -366,12 +372,12 @@ class FaucetUntaggedPrometheusGaugeHUPTest(FaucetUntaggedGaugeHUPTest):
         interval: 5
         db: 'prometheus'
 """
-        return super(FaucetUntaggedGaugeHUPTest,self).get_gauge_watcher_config()
+        return super(FaucetUntaggedGaugeHUPTest, self).get_gauge_watcher_config()
 
 
     def test_untagged(self):
         self.check_text_files_created()
-        
+
         self.config = 'prom'
         gauge_config = self.get_gauge_config(
             self.faucet_config_path,
@@ -387,10 +393,10 @@ class FaucetUntaggedPrometheusGaugeHUPTest(FaucetUntaggedGaugeHUPTest):
         time.sleep(self.DB_TIMEOUT*2)
         labels = {'port_name': '1', 'dp_id': '0x%x' % long(self.dpid)}
         prom_packets_out = self.scrape_prometheus_var(
-                    'of_port_tx_packets', labels=labels, controller='gauge',
-                    dpid=False)
+            'of_port_tx_packets', labels=labels, controller='gauge',
+            dpid=False)
         self.assertIsNotNone(prom_packets_out)
-        
+
 
 class FaucetUntaggedPrometheusGaugeTest(FaucetUntaggedTest):
     """Testing Gauge Prometheus"""
@@ -524,7 +530,6 @@ class FaucetUntaggedInfluxTest(FaucetUntaggedTest):
                 self._log_post(influx_log)
                 return self.send_response(204)
 
-
         self._start_influx(InfluxPostHandler)
         self.ping_all_when_learned()
         self.hup_gauge()
@@ -535,13 +540,13 @@ class FaucetUntaggedInfluxTest(FaucetUntaggedTest):
 
 class FaucetUntaggedInfluxGaugeHUPTest(FaucetUntaggedInfluxTest):
     config = 'text'
-    
+
     def get_gauge_watcher_config(self):
         if self.config == 'influx':
-            return super(FaucetUntaggedInfluxGaugeHUPTest,self).get_gauge_watcher_config()
-        else:
-            return super(FaucetUntaggedInfluxTest,self).get_gauge_watcher_config()
-    
+            return super(FaucetUntaggedInfluxGaugeHUPTest, self).get_gauge_watcher_config()
+
+        return super(FaucetUntaggedInfluxTest, self).get_gauge_watcher_config()
+
     def test_untagged(self):
         self.ping_all_when_learned()
         self.flap_all_switch_ports()
