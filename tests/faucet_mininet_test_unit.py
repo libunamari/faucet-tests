@@ -311,6 +311,14 @@ class FaucetSanityTest(FaucetUntaggedTest):
             self.require_host_learned(host, in_port=self.port_map[in_port])
 
 
+class FaucetUntaggedGaugeSwitchDownTest(FaucetUntaggedTest):
+    """ Checks that Gauge handles switch disconnections without exceptions"""
+
+    def test_untagged(self):
+        self.wait_dp_status(1, controller='gauge')
+        self.net.switches[0].stop()
+        self.assertFalse(self.net.switches[0].connected())
+        self.verify_no_exception(self.env['gauge']['GAUGE_EXCEPTION_LOG'])
 class FaucetUntaggedGaugeHUPTest(FaucetUntaggedTest):
 
     def _wait_for_port_stat_file(self, stats_files):
