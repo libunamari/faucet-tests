@@ -319,8 +319,9 @@ class FaucetUntaggedGaugeSwitchDownTest(FaucetUntaggedTest):
         self.net.switches[0].stop()
         self.assertFalse(self.net.switches[0].connected())
         self.verify_no_exception(self.env['gauge']['GAUGE_EXCEPTION_LOG'])
-class FaucetUntaggedGaugeHUPTest(FaucetUntaggedTest):
 
+class FaucetUntaggedGaugeHUPTest(FaucetUntaggedTest):
+    """ Checks that Gauge writes to a different text file after changing the config file"""
     def _wait_for_port_stat_file(self, stats_files):
         for _ in range(60):
             found_all = True
@@ -369,6 +370,8 @@ class FaucetUntaggedGaugeHUPTest(FaucetUntaggedTest):
 
 
 class FaucetUntaggedPrometheusGaugeHUPTest(FaucetUntaggedGaugeHUPTest):
+    """ Checks that Gauge writes to Prometheus after changing the config file"""
+
     config = 'text'
 
     def get_gauge_watcher_config(self):
@@ -547,6 +550,8 @@ class FaucetUntaggedInfluxTest(FaucetUntaggedTest):
         self._verify_influx_log(influx_log)
 
 class FaucetUntaggedInfluxGaugeHUPTest(FaucetUntaggedInfluxTest):
+    """ Checks that Gauge writes to Influx after changing the config file"""
+
     config = 'text'
 
     def get_gauge_watcher_config(self):
