@@ -320,6 +320,19 @@ class FaucetUntaggedGaugeSwitchDownTest(FaucetUntaggedTest):
         self.assertFalse(self.net.switches[0].connected())
         self.verify_no_exception(self.env['gauge']['GAUGE_EXCEPTION_LOG'])
 
+class FaucetUntaggedGaugeUnknownDpidTest(FaucetUntaggedTest):
+    """ Checks that an unknown switch wont cause an exception"""
+
+    def test_untagged(self):
+        dpid = self.rand_dpid()
+        port = self.net.switches[0].listenPort
+        self.net.addSwitch("unknown_switch", dpid=dpid, listenPort=port)
+        self.net.switches[1].start(self.net.controllers)
+
+        self.net.pingAll()
+        self.flap_all_switch_ports()
+        self.verify_no_exception(self.env['gauge']['GAUGE_EXCEPTION_LOG'])
+
 class FaucetUntaggedGaugeHUPTest(FaucetUntaggedTest):
     """ Checks that Gauge writes to a different text file after changing the config file"""
     def _wait_for_port_stat_file(self, stats_files):
