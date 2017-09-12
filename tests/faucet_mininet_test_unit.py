@@ -333,6 +333,48 @@ class FaucetUntaggedGaugeUnknownDpidTest(FaucetUntaggedTest):
         self.flap_all_switch_ports()
         self.verify_no_exception(self.env['gauge']['GAUGE_EXCEPTION_LOG'])
 
+class FaucetUntaggedGaugeStartDownTest(FaucetUntaggedTest):
+    """ Initially, one of the switches is not up. Check that this does not
+        cause an exception in Gauge. """
+
+    def setUp(self):
+        self.second_dpid = self.rand_dpid()
+        super(FaucetUntaggedGaugeStartDownTest, self).setUp()
+
+    def get_config_header(self, config_global, debug_log, dpid, hardware):
+        return """
+%s
+dps:
+    faucet-2:
+        dp_id: 0x%x
+        hardware: "Open vSwitch"
+
+
+    faucet-1:
+        ofchannel_log: %s
+        dp_id: 0x%x
+        hardware: "%s"
+
+""" % (config_global, int(self.second_dpid), debug_log, int(dpid), hardware)
+
+    def get_gauge_watcher_config(self):
+        gauge_config = super(FaucetUntaggedGaugeStartDownTest, self).get_gauge_watcher_config()
+        return gauge_config.replace('faucet-1', 'faucet-2')
+
+    def test_untagged(self):
+        self.net.pingAll()
+        self.flap_all_switch_ports()
+
+        switch = self.net.addSwitch(
+            'faucet-2',
+            dpid=faucet_mininet_test_util.mininet_dpid(self.second_dpid))
+        switch.start(self.net.controllers)
+
+        self.net.pingAll()
+        self.flap_all_switch_ports()
+        self.assertTrue(switch.connected())
+        self.verify_no_exception(self.env['gauge']['GAUGE_EXCEPTION_LOG'])
+
 class FaucetUntaggedGaugeHUPTest(FaucetUntaggedTest):
     """ Checks that Gauge writes to a different text file after changing the config file"""
     def _wait_for_port_stat_file(self, stats_files):
